@@ -1,18 +1,25 @@
-import { userHooks } from '@/api/users';
-
-function App() {
-  const { data: users, isLoading, isError, error } = userHooks.useFetchAll();
-
-  if (isLoading) return <div>Загружаем юзеров...</div>;
-  if (isError) return <div>Ошибка: {error.message}</div>;
-
+import { Outlet, NavLink } from 'react-router-dom';
+import { AppBar, Toolbar, Button, Container } from '@mui/material';
+export default function App() {
   return (
-    <ul>
-      {users?.map((user) => (
-        <li key={user.id}>{user.name}</li>
-      ))}
-    </ul>
+    <>
+      <AppBar position="static" color="default" elevation={1}>
+        <Toolbar>
+          <Button
+            component={NavLink}
+            to="/"
+            end
+            sx={{ mr: 2, '&.active': { fontWeight: 'bold', color: 'primary.main' } }}>
+            All Users
+          </Button>
+        </Toolbar>
+      </AppBar>
+
+      <Container
+        maxWidth="lg"
+        sx={{ my: 4, bgcolor: 'azure', border: '2px dashed blue', borderRadius: 2, p: 2 }}>
+        <Outlet />
+      </Container>
+    </>
   );
 }
-
-export default App;
