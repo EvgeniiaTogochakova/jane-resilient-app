@@ -1,53 +1,86 @@
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { userHooks } from '@/api/users';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import EditIcon from '@mui/icons-material/Edit';
 import {
   Card,
   CardContent,
   CardMedia,
   Typography,
   Button,
-  Container,
   Box,
-  CircularProgress,
+  LinearProgress,
 } from '@mui/material';
+import { userHooks, type User } from '@/api/users';
+import UserModal from '@/components/UserModal';
 
 export default function UserDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: user, isLoading } = userHooks.useFetchOne(id);
 
-  if (isLoading)
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}>
-        <CircularProgress />
-      </Box>
-    );
-  if (!user) return <Typography>User not found</Typography>;
+  const { data: user, isFetching } = userHooks.useFetchOne(id);
+
+  const { mutate: updateUser } = userHooks.useUpdate();
+
+  const [editOpen, setEditOpen] = React.useState(false);
+
+  const handleClose = () => {
+    setEditOpen(false);
+  };
+
+  const handleFormSubmit = (data: Partial<User>) => {
+    if (user) {
+      updateUser({ id: user.id, data });
+    }
+    handleClose();
+  };
+
+  if (!user) return <Typography variant="h2">User not found</Typography>;
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 4 }}>
+    <Box sx={{ width: '100%', position: 'relative' }}>
+      {/* isLoading не рассматриваю, т.к. кэш уже должен быть прогрет с помощью loader */}
+
+      {/* для фоновой дозагрузки работает isFetching */}
+      {isFetching && <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0 }} />}
+
       <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} sx={{ mb: 2 }}>
         Back
       </Button>
 
-      <Card elevation={3}>
-        <CardMedia component="img" height="300" image={user.avatar} alt={user.name} />
-        <CardContent>
-          <Typography variant="h4" gutterBottom>
-            {user.name}
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            <strong>Email:</strong> {user.email}
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            <strong>City:</strong> {user.city}
-          </Typography>
-          <Typography variant="caption" sx={{ mt: 2, display: 'block' }}>
-            User ID: {user.id}
-          </Typography>
-        </CardContent>
-      </Card>
-    </Container>
+      <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setEditOpen(true)}>
+        Edit Profile
+      </Button>
+
+      {/* Передаем объект user, чтобы модалка была заполненной */}
+      {user && (
+        <UserModal
+          open={editOpen}
+          user={user}
+          onClose={() => setEditOpen(false)}
+          onSubmit={handleFormSubmit}
+        />
+      )}
+
+      {user && (
+        <Card elevation={3}>
+          <CardMedia component="img" height="300" image={user.avatar} alt={user.name} />
+          <CardContent>
+            <Typography variant="h4" gutterBottom>
+              {user.name}
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              <strong>Email:</strong> {user.email}
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              <strong>City:</strong> {user.city}
+            </Typography>
+            <Typography variant="caption" sx={{ mt: 2, display: 'block' }}>
+              User ID: {user.id}
+            </Typography>
+          </CardContent>
+        </Card>
+      )}
+    </Box>
   );
 }
