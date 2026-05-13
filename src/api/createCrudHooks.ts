@@ -2,15 +2,24 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios, { type AxiosResponse } from 'axios';
 import { useSnackbar } from 'notistack';
 
+// для дальнейшей кастомизации нотификаций
+export interface CrudMessages {
+  createSuccess?: string;
+  createError?: string;
+  updateSuccess?: string;
+  updateError?: string;
+  deleteSuccess?: string;
+  deleteError?: string;
+}
+
+// универсальная фабрика хуков, тут учтены нотификации
 export const createCrudHooks = <T extends { id: string | number }>(
   baseUrl: string,
   entity: string,
+  messages?: CrudMessages,
 ) => {
-  const api = axios.create({
-    baseURL: baseUrl,
-  });
+  const api = axios.create({ baseURL: baseUrl });
 
-  // Чистые функции запросов (без хуков) для использования в loaders
   const requests = {
     fetchAll: async (): Promise<T[]> => {
       const response: AxiosResponse<T[]> = await api.get(`/${entity}`);
@@ -22,15 +31,13 @@ export const createCrudHooks = <T extends { id: string | number }>(
     },
   };
 
-  // Получить всё
   const useFetchAll = () => {
     return useQuery<T[]>({
       queryKey: [entity],
-      queryFn: requests.fetchAll, // Используем функцию из requests
+      queryFn: requests.fetchAll,
     });
   };
 
-  // Получить один по ID
   const useFetchOne = (id: string | number | undefined) => {
     return useQuery<T>({
       queryKey: [entity, id],
@@ -39,7 +46,6 @@ export const createCrudHooks = <T extends { id: string | number }>(
     });
   };
 
-  // Создать
   const useCreate = () => {
     const queryClient = useQueryClient();
     const { enqueueSnackbar } = useSnackbar();
@@ -51,15 +57,18 @@ export const createCrudHooks = <T extends { id: string | number }>(
       },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [entity] });
-        enqueueSnackbar('Пользователь успешно создан', { variant: 'success' });
+        if (messages?.createSuccess) {
+          enqueueSnackbar(messages.createSuccess, { variant: 'success' });
+        }
       },
       onError: () => {
-        enqueueSnackbar('Ошибка при создании пользователя!', { variant: 'error' });
+        if (messages?.createError) {
+          enqueueSnackbar(messages.createError, { variant: 'error' });
+        }
       },
     });
   };
 
-  // Обновить
   const useUpdate = () => {
     const queryClient = useQueryClient();
     const { enqueueSnackbar } = useSnackbar();
@@ -72,15 +81,18 @@ export const createCrudHooks = <T extends { id: string | number }>(
       onSuccess: (data) => {
         queryClient.invalidateQueries({ queryKey: [entity] });
         queryClient.invalidateQueries({ queryKey: [entity, data.id] });
-        enqueueSnackbar('Пользователь успешно обновлен', { variant: 'success' });
+        if (messages?.updateSuccess) {
+          enqueueSnackbar(messages.updateSuccess, { variant: 'success' });
+        }
       },
       onError: () => {
-        enqueueSnackbar('Ошибка при обновлении пользователя!', { variant: 'error' });
+        if (messages?.updateError) {
+          enqueueSnackbar(messages.updateError, { variant: 'error' });
+        }
       },
     });
   };
 
-  // Удалить
   const useDelete = () => {
     const queryClient = useQueryClient();
     const { enqueueSnackbar } = useSnackbar();
@@ -91,16 +103,20 @@ export const createCrudHooks = <T extends { id: string | number }>(
       },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [entity] });
-        enqueueSnackbar('Пользователь успешно удален', { variant: 'success' });
+        if (messages?.deleteSuccess) {
+          enqueueSnackbar(messages.deleteSuccess, { variant: 'success' });
+        }
       },
       onError: () => {
-        enqueueSnackbar('Ошибка при удалении пользователя!', { variant: 'error' });
+        if (messages?.deleteError) {
+          enqueueSnackbar(messages.deleteError, { variant: 'error' });
+        }
       },
     });
   };
 
   return {
-    requests, // Экспортируем чистые функции для loaders
+    requests,
     useFetchAll,
     useFetchOne,
     useCreate,
