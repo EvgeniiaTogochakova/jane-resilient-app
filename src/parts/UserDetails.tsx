@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import {
   Card,
   CardContent,
@@ -13,6 +14,7 @@ import {
 } from '@mui/material';
 import { userHooks, type User } from '@/api/users';
 import UserModal from '@/components/UserModal';
+import UserDeleteModal from '@/components/UserDeleteModal';
 
 export default function UserDetails() {
   const { id } = useParams();
@@ -22,7 +24,11 @@ export default function UserDetails() {
 
   const { mutate: updateUser } = userHooks.useUpdate();
 
+  const { mutate: deleteUser, isPending: isDeleting } = userHooks.useDelete();
+
   const [editOpen, setEditOpen] = React.useState(false);
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
 
   const handleClose = () => {
     setEditOpen(false);
@@ -35,6 +41,17 @@ export default function UserDetails() {
     handleClose();
   };
 
+  const handleConfirmDelete = () => {
+    if (user) {
+      deleteUser(user.id, {
+        onSuccess: () => {
+          setDeleteDialogOpen(false);
+          navigate('/', { replace: true });
+        },
+      });
+    }
+  };
+
   if (!user) return <Typography variant="h2">User not found</Typography>;
 
   return (
@@ -44,21 +61,43 @@ export default function UserDetails() {
       {/* для фоновой дозагрузки работает isFetching */}
       {isFetching && <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0 }} />}
 
-      <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} sx={{ mb: 2 }}>
-        Back
-      </Button>
+      <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} sx={{ mb: 2 }}>
+          Back
+        </Button>
 
-      <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setEditOpen(true)}>
-        Edit Profile
-      </Button>
+        <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setEditOpen(true)}>
+          Edit Profile
+        </Button>
 
-      {/* Передаем объект user, чтобы модалка была заполненной */}
+        <Button
+          variant="contained"
+          color="error"
+          startIcon={<DeleteIcon />}
+          onClick={() => setDeleteDialogOpen(true)} // Открываем модалку удаления
+          disabled={isDeleting}>
+          Delete User
+        </Button>
+      </Box>
+
+      {/* Передаем объект user, чтобы модалка на редактирование была заполненной */}
       {user && (
         <UserModal
           open={editOpen}
           user={user}
           onClose={() => setEditOpen(false)}
           onSubmit={handleFormSubmit}
+        />
+      )}
+
+      {/* Это вызов модалки на удаление */}
+      {user && (
+        <UserDeleteModal
+          open={deleteDialogOpen}
+          userName={user.name}
+          isDeleting={isDeleting}
+          onClose={() => setDeleteDialogOpen(false)}
+          onConfirm={handleConfirmDelete}
         />
       )}
 
