@@ -1,21 +1,43 @@
 import React from 'react';
-import { LinearProgress, Box, Grid, Button, IconButton, Typography } from '@mui/material';
+import { useSearchParams, useNavigation, NavLink } from 'react-router-dom';
+import { Box, Button, Grid, IconButton, LinearProgress, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
-import { NavLink } from 'react-router-dom';
-import UserModal from '@/components/UserModal';
+import { matchSorter } from 'match-sorter';
+import sortBy from 'sort-by';
 import { userHooks, type User } from '@/api/users';
+import SearchSort from '@/components/SearchSort';
+import UserModal from '@/components/UserModal';
 
 export default function UserList() {
-  const { data: users, isFetching } = userHooks.useFetchAll();
+  const [searchParams] = useSearchParams();
+  const navigation = useNavigation();
   const { mutate: createUser } = userHooks.useCreate();
   const { mutate: updateUser } = userHooks.useUpdate();
 
   const [open, setOpen] = React.useState(false);
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
 
+  // Параметры из URL
+  const q = searchParams.get('q') || '';
+  const sort = searchParams.get('sort') || 'name';
+
+  //  Данные из TanStack Query, берем из прогретого кэша
+  const { data: allUsers = [], isFetching } = userHooks.useFetchAll();
+
+  // Обновляется ли сейчас страница в связи с изменением поискового параметра q
+  const searching = navigation.location && new URLSearchParams(navigation.location.search).has('q');
+
+  // Фильтрация и сортировка
+  const filteredUsers = q
+    ? matchSorter(allUsers, q, { keys: ['name', 'email', 'city'] })
+    : allUsers;
+
+  const sortedUsers = [...filteredUsers].sort(sortBy(sort));
+
   const handleClose = () => {
     setOpen(false);
+    setSelectedUser(null);
   };
 
   const handleFormSubmit = (data: Partial<User>) => {
@@ -28,16 +50,15 @@ export default function UserList() {
   };
 
   return (
-    <Box sx={{ width: '100%', position: 'relative' }}>
-      {/* isLoading не рассматриваю, т.к. кэш уже должен быть прогрет с помощью loader */}
-
-      {/* для фоновой дозагрузки работает isFetching */}
-      {isFetching && <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0 }} />}
-
+    <Box sx={{ width: '100%', p: 3, position: 'relative' }}>
+      {/* isFetching - фоновая дозагрузка, searching - это пользовательский поиск */}
+      {(isFetching || searching) && (
+        <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0 }} />
+      )}
       <Typography variant="h2" gutterBottom>
         Users
       </Typography>
-
+      <SearchSort q={q} sort={sort} searching={!!searching} />
       <Button
         variant="contained"
         color="primary"
@@ -46,7 +67,6 @@ export default function UserList() {
         sx={{ mb: 3 }}>
         Add New User
       </Button>
-
       <UserModal
         key={selectedUser?.id || 'new'}
         open={open}
@@ -56,19 +76,9 @@ export default function UserList() {
       />
 
       <Grid container spacing={2}>
-        {users?.map((user) => (
-          //   <Card key={user.id} user={user} />
+        {sortedUsers?.map((user) => (
           <Box key={user.id}>
-            <Button
-              component={NavLink}
-              to={`/users/${user.id}`}
-              // sx={{
-              //   '&.active': {
-              //     backgroundColor: 'rgba(25, 118, 210, 0.12)',
-              //     borderBottom: '2px solid #1976d2',
-              //   },
-              // }}
-            >
+            <Button component={NavLink} to={`/users/${user.id}`}>
               {user.name}
             </Button>
             <IconButton

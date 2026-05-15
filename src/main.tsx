@@ -21,15 +21,17 @@ const queryClient = new QueryClient({
   },
 });
 
-// loader для списка пользователей
+// loader для получения всех пользователей, но он только греет кэш, а данные компоненту дает tanstack
+
 const usersLoader = (queryClient: QueryClient) => async () => {
-  return await queryClient.ensureQueryData({
+  await queryClient.ensureQueryData({
     queryKey: ['users'],
-    queryFn: userHooks.requests.fetchAll, // Берем из requests
+    queryFn: userHooks.requests.fetchAll,
   });
+  return null;
 };
 
-// loader для деталей (по одному пользователю, с id)
+// loader для деталей (по одному пользователю, с id) - тоже греет кэш, данные дает tanstack
 
 const userDetailsLoader =
   (queryClient: QueryClient) =>
@@ -38,10 +40,12 @@ const userDetailsLoader =
 
     if (!id) throw new Error('No ID provided');
 
-    return await queryClient.ensureQueryData({
+    await queryClient.ensureQueryData({
       queryKey: ['users', id],
-      queryFn: () => userHooks.requests.fetchOne(id), // Тоже берем из requests
+      queryFn: () => userHooks.requests.fetchOne(id),
     });
+
+    return null;
   };
 
 const router = createBrowserRouter([
