@@ -1,17 +1,22 @@
 import React from 'react';
-import { useSearchParams, useNavigation, NavLink } from 'react-router-dom';
-import { Box, Button, Grid, IconButton, LinearProgress, Typography } from '@mui/material';
+import { useSearchParams, useNavigation, useNavigate } from 'react-router-dom';
+import { Box, Button, LinearProgress, Pagination, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
+
 import { matchSorter } from 'match-sorter';
 import sortBy from 'sort-by';
 import { userHooks, type User } from '@/api/users';
 import SearchSort from '@/components/SearchSort';
 import UserModal from '@/components/UserModal';
+import UserCard from '@/components/UserCard';
+
+const ITEMS_PER_PAGE = 6; // Константа для пагинации (по 6 карточек)
 
 export default function UserList() {
   const [searchParams] = useSearchParams();
   const navigation = useNavigation();
+  const navigate = useNavigate();
+
   const { mutate: createUser } = userHooks.useCreate();
   const { mutate: updateUser } = userHooks.useUpdate();
 
@@ -21,6 +26,7 @@ export default function UserList() {
   // Параметры из URL
   const q = searchParams.get('q') || '';
   const sort = searchParams.get('sort') || 'name';
+  const page = parseInt(searchParams.get('page') || '1', 10);
 
   //  Данные из TanStack Query, берем из прогретого кэша
   const { data: allUsers = [], isFetching } = userHooks.useFetchAll();
@@ -49,6 +55,22 @@ export default function UserList() {
     handleClose();
   };
 
+  // Расчет пагинации
+  const totalItems = sortedUsers.length;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+  // Нарезаем отсортированный массив под текущую страницу
+  const startIndex = (page - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedUsers = sortedUsers.slice(startIndex, endIndex);
+
+  // Обработчик клика по кнопкам пагинации
+  const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('page', value.toString());
+    navigate(`/?${newParams.toString()}`);
+  };
+
   return (
     <Box sx={{ width: '100%', p: 3, position: 'relative' }}>
       {/* isFetching - фоновая дозагрузка, searching - это пользовательский поиск */}
@@ -75,22 +97,44 @@ export default function UserList() {
         user={selectedUser}
       />
 
-      <Grid container spacing={2}>
-        {sortedUsers?.map((user) => (
-          <Box key={user.id}>
-            <Button component={NavLink} to={`/users/${user.id}`}>
-              {user.name}
-            </Button>
-            <IconButton
-              onClick={() => {
-                setSelectedUser(user);
-                setOpen(true); // Откроет заполненную модалку - на редактирование пользователя
-              }}>
-              <EditIcon />
-            </IconButton>
-          </Box>
+      {/* Если после фильтрации никого не нашли */}
+      {paginatedUsers.length === 0 && !isFetching && (
+        <Typography variant="body1" color="text.secondary" align="center" sx={{ my: 4 }}>
+          No users found matching your criteria.
+        </Typography>
+      )}
+
+      <Box
+        sx={{
+          bgcolor: 'pink',
+          width: '100%',
+          display: 'grid',
+          gap: 3,
+          mb: 4,
+          // Адаптивная сетка под лимит в 6 карточек:
+          gridTemplateColumns: {
+            xs: '1fr', // Мобильные: 1 колонка
+            sm: 'repeat(2, 1fr)', // Планшеты: 2 колонки
+            md: 'repeat(3, 1fr)', // Десктопы: 3 колонки
+          },
+        }}>
+        {paginatedUsers.map((user: User) => (
+          <UserCard key={user.id} user={user} setOpen={setOpen} setSelectedUser={setSelectedUser} />
         ))}
-      </Grid>
+      </Box>
+
+      {/* Пагинация отображается, только если страниц больше одной */}
+      {totalPages > 1 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}>
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={handlePageChange}
+            color="primary"
+            shape="rounded"
+          />
+        </Box>
+      )}
     </Box>
   );
 }
