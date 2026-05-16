@@ -20,7 +20,7 @@ export default function UserDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { data: user, isFetching } = userHooks.useFetchOne(id);
+  const { data: user } = userHooks.useFetchOne(id);
 
   const { mutate: updateUser } = userHooks.useUpdate();
 
@@ -56,11 +56,6 @@ export default function UserDetails() {
 
   return (
     <Box sx={{ width: '100%', position: 'relative' }}>
-      {/* isLoading не рассматриваю, т.к. кэш уже должен быть прогрет с помощью loader */}
-
-      {/* для фоновой дозагрузки работает isFetching */}
-      {isFetching && <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0 }} />}
-
       <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap', alignItems: 'center' }}>
         <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} sx={{ mb: 2 }}>
           Back

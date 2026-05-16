@@ -1,10 +1,11 @@
 import React from 'react';
 import { useSearchParams, useNavigation, useNavigate } from 'react-router-dom';
-import { Box, Button, LinearProgress, Pagination, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import { alpha, Box, Button, Pagination, Typography } from '@mui/material';
 
 import { matchSorter } from 'match-sorter';
 import sortBy from 'sort-by';
+
 import { userHooks, type User } from '@/api/users';
 import SearchSort from '@/components/SearchSort';
 import UserModal from '@/components/UserModal';
@@ -73,10 +74,6 @@ export default function UserList() {
 
   return (
     <Box sx={{ width: '100%', p: 3, position: 'relative' }}>
-      {/* isFetching - фоновая дозагрузка, searching - это пользовательский поиск */}
-      {(isFetching || searching) && (
-        <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0 }} />
-      )}
       <Typography variant="h2" gutterBottom>
         Users
       </Typography>
@@ -105,19 +102,20 @@ export default function UserList() {
       )}
 
       <Box
-        sx={{
-          bgcolor: 'pink',
+        sx={(theme) => ({
+          background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.2)} 0%, #FFFFFF 100%)`,
+          padding: 3,
+          borderRadius: 3,
           width: '100%',
           display: 'grid',
           gap: 3,
           mb: 4,
-          // Адаптивная сетка под лимит в 6 карточек:
           gridTemplateColumns: {
-            xs: '1fr', // Мобильные: 1 колонка
-            sm: 'repeat(2, 1fr)', // Планшеты: 2 колонки
-            md: 'repeat(3, 1fr)', // Десктопы: 3 колонки
+            xs: '1fr',
+            sm: 'repeat(2, 1fr)',
+            md: 'repeat(3, 1fr)',
           },
-        }}>
+        })}>
         {paginatedUsers.map((user: User) => (
           <UserCard key={user.id} user={user} setOpen={setOpen} setSelectedUser={setSelectedUser} />
         ))}

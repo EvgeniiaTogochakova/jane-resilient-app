@@ -1,5 +1,6 @@
 import React from 'react';
-import { Modal, Box, Typography, TextField, Button, Stack } from '@mui/material';
+import { Modal, Box, Typography, TextField, Button, Stack, IconButton } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import type { User } from '@/api/users';
 
 interface UserModalProps {
@@ -10,15 +11,21 @@ interface UserModalProps {
 }
 
 const style = {
-  position: 'absolute',
+  position: 'absolute' as const,
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 400,
+  width: 'calc(100% - 32px)',
+  maxWidth: 400,
   bgcolor: 'background.paper',
   boxShadow: 24,
-  p: 4,
+  p: {
+    xs: 2,
+    sm: 4,
+  },
   borderRadius: 2,
+  maxHeight: '90vh',
+  overflowY: 'auto',
 };
 
 export default function UserModal({ open, onClose, onSubmit, user }: UserModalProps) {
@@ -33,6 +40,17 @@ export default function UserModal({ open, onClose, onSubmit, user }: UserModalPr
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={style}>
+        <IconButton
+          aria-label="close"
+          onClick={onClose}
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+          }}>
+          <CloseIcon />
+        </IconButton>
+
         <Typography variant="h6" sx={{ mb: 2 }}>
           {user ? 'Edit User' : 'Create New User'}
         </Typography>
