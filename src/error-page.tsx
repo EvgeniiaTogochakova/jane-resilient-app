@@ -3,15 +3,13 @@ import { Typography, Container, Box, Button } from '@mui/material';
 
 export default function ErrorPage() {
   const error = useRouteError();
-  console.error(error);
 
   let errorMessage: string;
 
   if (isRouteErrorResponse(error)) {
-    // Ошибка от самого роутера (например, 404)
     errorMessage = error.data?.message || error.statusText;
+    console.log(error);
   } else if (error instanceof Error) {
-    // Обычная JS ошибка
     errorMessage = error.message;
   } else if (typeof error === 'string') {
     errorMessage = error;
