@@ -18,11 +18,12 @@ export default function UserList() {
   const navigation = useNavigation();
   const navigate = useNavigate();
 
-  const { mutate: createUser } = userHooks.useCreate();
-  const { mutate: updateUser } = userHooks.useUpdate();
+  const { mutate: createUser, isPending: isCreating } = userHooks.useCreate();
+  const { mutate: updateUser, isPending: isUpdating } = userHooks.useUpdate();
 
   const [open, setOpen] = React.useState(false);
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
+  const isFormSubmitting = isCreating || isUpdating;
 
   // Параметры из URL
   const q = searchParams.get('q') || '';
@@ -100,12 +101,14 @@ export default function UserList() {
         sx={{ mb: 3 }}>
         Add New User
       </Button>
+
       <UserModal
         key={selectedUser?.id || 'new'}
         open={open}
         onClose={handleClose}
         onSubmit={handleFormSubmit}
         user={selectedUser}
+        isFormSubmitting={isFormSubmitting}
       />
 
       {/* Если после фильтрации никого не нашли */}

@@ -1,3 +1,4 @@
+import LanguageIcon from '@mui/icons-material/Language';
 import {
   Dialog,
   DialogActions,
@@ -5,6 +6,7 @@ import {
   DialogContentText,
   DialogTitle,
   Button,
+  keyframes,
 } from '@mui/material';
 
 interface UserDeleteModalProps {
@@ -14,6 +16,15 @@ interface UserDeleteModalProps {
   userName: string;
   isDeleting: boolean;
 }
+
+const spin = keyframes`
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+`;
 
 export default function UserDeleteModal({
   open,
@@ -25,7 +36,7 @@ export default function UserDeleteModal({
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={isDeleting ? undefined : onClose}
       aria-labelledby="delete-dialog-title"
       aria-describedby="delete-dialog-description">
       <DialogTitle id="delete-dialog-title">Delete User Profile?</DialogTitle>
@@ -43,7 +54,17 @@ export default function UserDeleteModal({
           color="error"
           variant="contained"
           autoFocus
-          disabled={isDeleting}>
+          disabled={isDeleting}
+          startIcon={
+            isDeleting ? (
+              <LanguageIcon
+                sx={{
+                  animation: `${spin} 2s linear infinite`,
+                  color: '#fff',
+                }}
+              />
+            ) : null
+          }>
           {isDeleting ? 'Deleting...' : 'Delete'}
         </Button>
       </DialogActions>

@@ -14,7 +14,7 @@ export default function UserDetails() {
 
   const { data: user } = userHooks.useFetchOne(id);
 
-  const { mutate: updateUser } = userHooks.useUpdate();
+  const { mutate: updateUser, isPending: isUpdating } = userHooks.useUpdate();
 
   const { mutate: deleteUser, isPending: isDeleting } = userHooks.useDelete();
 
@@ -80,6 +80,7 @@ export default function UserDetails() {
           user={user}
           onClose={() => setEditOpen(false)}
           onSubmit={handleFormSubmit}
+          isFormSubmitting={isUpdating}
         />
       )}
 
