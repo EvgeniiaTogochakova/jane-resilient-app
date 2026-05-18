@@ -49,11 +49,25 @@ export default function UserList() {
 
   const handleFormSubmit = (data: Partial<User>) => {
     if (selectedUser) {
-      updateUser({ id: selectedUser.id, data });
+      // Редактирование пользователя
+      updateUser(
+        { id: selectedUser.id, data },
+        {
+          onSuccess: (updatedUser) => {
+            handleClose();
+            navigate(`/users/${updatedUser.id}`);
+          },
+        },
+      );
     } else {
-      createUser(data);
+      // Создание нового пользователя
+      createUser(data, {
+        onSuccess: (newUser) => {
+          handleClose();
+          navigate(`/users/${newUser.id}`);
+        },
+      });
     }
-    handleClose();
   };
 
   // Расчет пагинации
