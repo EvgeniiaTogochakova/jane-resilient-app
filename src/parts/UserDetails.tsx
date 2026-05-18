@@ -3,15 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import {
-  Card,
-  CardContent,
-  CardMedia,
-  Typography,
-  Button,
-  Box,
-  LinearProgress,
-} from '@mui/material';
+import { Card, CardContent, CardMedia, Typography, Button, Box } from '@mui/material';
 import { userHooks, type User } from '@/api/users';
 import UserModal from '@/components/UserModal';
 import UserDeleteModal from '@/components/UserDeleteModal';
@@ -36,9 +28,15 @@ export default function UserDetails() {
 
   const handleFormSubmit = (data: Partial<User>) => {
     if (user) {
-      updateUser({ id: user.id, data });
+      updateUser(
+        { id: user.id, data },
+        {
+          onSuccess: () => {
+            handleClose();
+          },
+        },
+      );
     }
-    handleClose();
   };
 
   const handleConfirmDelete = () => {
