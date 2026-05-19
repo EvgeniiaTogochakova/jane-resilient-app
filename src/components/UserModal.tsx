@@ -1,48 +1,44 @@
-import React from 'react';
 import {
   Modal,
   Box,
+  IconButton,
   Typography,
+  Stack,
   TextField,
   Button,
-  Stack,
-  IconButton,
   keyframes,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import LanguageIcon from '@mui/icons-material/Language';
-import type { User } from '@/api/users';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { type User } from '@/api/users';
+import { userFormSchema, type UserFormData } from '@/components/UserModal.schema';
 
-interface UserModalProps {
-  open: boolean;
-  onClose: () => void;
-  onSubmit: (data: Partial<User>) => void;
-  user?: User | null;
-  isFormSubmitting: boolean;
-}
+const spin = keyframes`
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+`;
 
 const style = {
   position: 'absolute' as const,
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 'calc(100% - 32px)',
-  maxWidth: 400,
+  width: 400,
   bgcolor: 'background.paper',
-  boxShadow: 24,
-  p: {
-    xs: 2,
-    sm: 4,
-  },
   borderRadius: 2,
-  maxHeight: '90vh',
-  overflowY: 'auto',
+  boxShadow: 24,
+  p: 4,
 };
 
-const spin = keyframes`
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-`;
+interface UserModalProps {
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (data: UserFormData) => void;
+  user: User | null;
+  isFormSubmitting: boolean;
+}
 
 export default function UserModal({
   open,
@@ -51,17 +47,27 @@ export default function UserModal({
   user,
   isFormSubmitting,
 }: UserModalProps) {
-  const [formData, setFormData] = React.useState<Partial<User>>(
-    user || { name: '', email: '', city: '', avatar: '' },
-  );
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<UserFormData>({
+    resolver: zodResolver(userFormSchema),
+    defaultValues: {
+      name: user?.name || '',
+      email: user?.email || '',
+      city: user?.city || '',
+      avatar: user?.avatar || '',
+    },
+  });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const onValidSubmit = (data: UserFormData) => {
+    onSubmit(data);
   };
 
   return (
     <Modal open={open} onClose={isFormSubmitting ? undefined : onClose}>
-      <Box sx={style}>
+      <Box sx={style} component="form" onSubmit={handleSubmit(onValidSubmit)}>
         <IconButton
           aria-label="close"
           onClick={onClose}
@@ -78,41 +84,45 @@ export default function UserModal({
         <Typography variant="h6" sx={{ mb: 2 }}>
           {user ? 'Edit User' : 'Create New User'}
         </Typography>
+
         <Stack spacing={2}>
           <TextField
-            name="name"
             label="Full Name"
             fullWidth
-            value={formData.name}
-            onChange={handleChange}
+            {...register('name')}
+            error={!!errors.name}
+            helperText={errors.name?.message}
           />
+
           <TextField
-            name="email"
             label="Email"
             fullWidth
-            value={formData.email}
-            onChange={handleChange}
+            {...register('email')}
+            error={!!errors.email}
+            helperText={errors.email?.message}
           />
+
           <TextField
-            name="city"
             label="City"
             fullWidth
-            value={formData.city}
-            onChange={handleChange}
+            {...register('city')}
+            error={!!errors.city}
+            helperText={errors.city?.message}
           />
+
           <TextField
-            name="avatar"
             label="Avatar URL"
             fullWidth
-            value={formData.avatar}
-            onChange={handleChange}
+            {...register('avatar')}
+            error={!!errors.avatar}
+            helperText={errors.avatar?.message}
           />
+
           <Button
             type="submit"
             variant="contained"
             color="primary"
             disabled={isFormSubmitting}
-            onClick={() => onSubmit(formData)}
             startIcon={
               isFormSubmitting ? (
                 <LanguageIcon
