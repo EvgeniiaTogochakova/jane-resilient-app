@@ -8,11 +8,14 @@ import {
   CardContent,
   CardMedia,
   IconButton,
+  Skeleton,
   Typography,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import type { User } from '@/api/users';
+import React from 'react';
 
 interface UserCardProps {
   user: User;
@@ -21,6 +24,9 @@ interface UserCardProps {
 }
 
 export default function UserCard({ user, setOpen, setSelectedUser }: UserCardProps) {
+  const [imgLoading, setImgLoading] = React.useState(true);
+  const [imgError, setImgError] = React.useState(false);
+
   const { id, name, avatar, email, city } = user;
 
   return (
@@ -32,21 +38,47 @@ export default function UserCard({ user, setOpen, setSelectedUser }: UserCardPro
           backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.06),
           display: 'flex',
           justifyContent: 'center',
+          position: 'relative',
         }}>
-        <CardMedia
-          component="img"
-          image={avatar}
-          alt={name}
-          sx={{
-            height: '100%',
-            width: 'auto',
-            objectFit: 'contain',
-          }}
-          onError={(e) => {
-            (e.target as HTMLImageElement).src =
-              'data:image/svg+xml;utf8,<svg xmlns="http://w3.org" width="100" height="100" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
-          }}
-        />
+        {imgError ? (
+          <AccountCircleIcon
+            sx={{ fontSize: 140, color: (theme) => alpha(theme.palette.primary.main, 0.5) }}
+          />
+        ) : (
+          <>
+            {imgLoading && (
+              <Skeleton
+                variant="rectangular"
+                animation="wave"
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.1),
+                }}
+              />
+            )}
+
+            <CardMedia
+              component="img"
+              image={avatar}
+              alt={name}
+              sx={{
+                height: '100%',
+                width: 'auto',
+                objectFit: 'contain',
+                display: imgLoading ? 'none' : 'block',
+              }}
+              onLoad={() => setImgLoading(false)}
+              onError={() => {
+                setImgLoading(false);
+                setImgError(true);
+              }}
+            />
+          </>
+        )}
       </Box>
 
       <CardContent sx={{ flexGrow: 1 }}>
