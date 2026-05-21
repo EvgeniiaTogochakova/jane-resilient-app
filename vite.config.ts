@@ -5,8 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-// https://vite.dev/config/
+// https://vite.dev/config
 export default defineConfig({
   plugins: [react()],
   server: {
@@ -21,6 +20,32 @@ export default defineConfig({
       '@parts': resolve(__dirname, './src/parts'),
       '@assets': resolve(__dirname, './src/assets'),
       '@components': resolve(__dirname, './src/components'),
+    },
+  },
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          minSize: 10000,
+          groups: [
+            {
+              name: 'mui-vendor',
+              test: /node_modules[\\/](@mui|@emotion)/,
+              priority: 30,
+            },
+            {
+              name: 'data-vendor',
+              test: /node_modules[\\/](@tanstack|axios|react-router|react-router-dom|react-hook-form|zod)/,
+              priority: 20,
+            },
+            {
+              name: 'core-vendor',
+              test: /node_modules/,
+              priority: 10,
+            },
+          ],
+        },
+      },
     },
   },
 });
