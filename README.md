@@ -1,6 +1,9 @@
 # Jane Resilient App
 
+> **🌐 Live Demo:** [https://jane-resilient-app.vercel.app/](https://jane-resilient-app.vercel.app/)
+
 A modern, high-performance React application for user management (CRUD), built with a strict focus on code reusability, enterprise-grade form validation, and a resilient, fault-tolerant front-end architecture.
+
 
 ## Key Features
 
