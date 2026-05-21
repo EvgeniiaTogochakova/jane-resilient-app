@@ -1,6 +1,6 @@
 # Jane Resilient App
 
-A modern, high-performance React application for user management, built with a strict focus on code reusability, enterprise-grade form validation, and a resilient, fault-tolerant front-end architecture.
+A modern, high-performance React application for user management (CRUD), built with a strict focus on code reusability, enterprise-grade form validation, and a resilient, fault-tolerant front-end architecture.
 
 ## Key Features
 
